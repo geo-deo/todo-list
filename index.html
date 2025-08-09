@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <h1>My To-Do List</h1>
-    <input type="text" id="taskInput" placeholder="Enter a task">
-    <button onclick="addTask()">Add</button>
-    <ul id="taskList"></ul>
+  <h1>My To-Do List</h1>
 
-    <script src="script.js"></script>
+  <div class="toolbar">
+    <input type="text" id="taskInput" placeholder="Enter a task"/>
+    <button id="addBtn">Add</button>
+
+    <div class="spacer"></div>
+
+    <button id="exportBtn" title="Download tasks as JSON">Export</button>
+    <label class="import-label" title="Import tasks from JSON">
+      Import
+      <input type="file" id="importInput" accept="application/json" hidden/>
+    </label>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <script src="script.js"></script>
 </body>
 </html>
