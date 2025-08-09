@@ -1,4 +1,48 @@
-body { font-family: Arial, sans-serif; margin: 20px; }
-input { padding: 5px; }
-button { padding: 5px 10px; margin-left: 5px; }
-ul li { margin-top: 5px; }
+let tasks = [];
+
+// Загружаем задачи из localStorage при старте
+window.onload = function() {
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+        renderTasks();
+    }
+};
+
+function addTask() {
+    const input = document.getElementById("taskInput");
+    const taskText = input.value.trim();
+    if (taskText === "") return;
+
+    tasks.push(taskText);
+    saveTasks();
+    renderTasks();
+    input.value = "";
+}
+
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    saveTasks();
+    renderTasks();
+}
+
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.textContent = task;
+
+        const btn = document.createElement("button");
+        btn.textContent = "❌";
+        btn.style.marginLeft = "10px";
+        btn.onclick = () => deleteTask(index);
+
+        li.appendChild(btn);
+        list.appendChild(li);
+    });
+}
