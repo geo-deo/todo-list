@@ -10,34 +10,44 @@
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 
   // ---------- State & Storage ----------
-  const STORAGE_KEY = 'todo_lists_v2';
-  /** @type {{lists: Array<{id:string,name:string,createdAt:number,tasks:Array<{id:string,text:string,completed:boolean,createdAt:number}>}>}} */
-  let state = load();
+const STORAGE_KEY = 'todo_lists_v2';
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    // seed примером
-    const exampleId = uid();
-    return {
-      lists: [
-        {
-          id: exampleId,
-          name: 'Мой первый список',
-          createdAt: Date.now(),
-          tasks: [
-            { id: uid(), text: 'Попробовать инлайн‑редактирование ✏️', completed: false, createdAt: Date.now() },
-            { id: uid(), text: 'Переключить тему 🌓', completed: false, createdAt: Date.now() }
-          ]
-        }
-      ]
-    };
+function seed() {
+  const id = uid();
+  return {
+    lists: [{
+      id,
+      name: 'Мой первый список',
+      createdAt: Date.now(),
+      tasks: [
+        { id: uid(), text: 'Попробовать инлайн-редактирование ✏️', completed: false, createdAt: Date.now() },
+        { id: uid(), text: 'Переключить тему 🌓', completed: false, createdAt: Date.now() },
+      ],
+    }],
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return seed();
+    const parsed = JSON.parse(raw);
+
+    // проверка структуры
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.lists)) {
+      return seed();
+    }
+    return parsed;
+  } catch {
+    return seed();
   }
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
+}
+
+let state = load();
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
   // ---------- Theme ----------
   const root = document.documentElement;
