@@ -151,35 +151,37 @@
   }
 
   // Inline rename list from lists grid or header
-  function inlineRename(listId) {
-    const list = getList(listId);
-    if (!list) return;
+function inlineRename(listId) {
+  const list = getList(listId);
+  if (!list) return;
 
-    // If in lists grid
-    const card = $(`.list-card[data-id="${listId}"]`);
-    if (card) {
-      const nameEl = $('.list-name', card);
-      makeInlineInput(nameEl, list.name, (val) => {
-        list.name = val.trim() || list.name;
-        save();
-        renderLists();
-        // sync header if open
-        if (currentListId === listId) currentListNameSpan.textContent = list.name;
-      });
-      return;
-    }
+  // 1) Если открыт экран задач — редактируем заголовок в шапке (видимая часть)
+  if (tasksView.classList.contains('active') && currentListId === listId) {
+    const nameEl = document.getElementById('currentListName');
+    makeInlineInput(nameEl, list.name, (val) => {
+      const next = (val || '').trim();
+      if (next) list.name = next;
+      save();
+      // берём актуальный узел (после replace он новый)
+      document.getElementById('currentListName').textContent = list.name;
+      renderLists();
+    }, { selectAll: true });
+    return;
+  }
 
-    // If in header (tasks view)
-    if (currentListId === listId) {
-        const nameEl = getCurrentListNameEl();
-        makeInlineInput(nameEl, list.name, (val) => {
-          list.name = (val || '').trim() || list.name;
-          save();
-          getCurrentListNameEl().textContent = list.name;
-          renderLists();
-        }, { selectAll: true });
+  // 2) Переименование в сетке списков — только когда сетка видима
+  if (listsView.classList.contains('active')) {
+    const next = prompt('Rename list:', list.name);
+    if (next && next.trim()) {
+      list.name = next.trim();
+      save();
+      renderLists();
+      if (currentListId === listId) {
+        document.getElementById('currentListName').textContent = list.name;
+      }
     }
   }
+}
 
   // ---------- Render Tasks ----------
   function renderTasks(listId) {
