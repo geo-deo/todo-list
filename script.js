@@ -4,50 +4,49 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const fmtDate = (ts) => {
     const d = new Date(ts);
-    // Авто-локаль по браузеру
+    // Use browser locale automatically
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   };
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 
   // ---------- State & Storage ----------
-const STORAGE_KEY = 'todo_lists_v2';
+  const STORAGE_KEY = 'todo_lists_v2';
 
-function seed() {
-  const id = uid();
-  return {
-    lists: [{
-      id,
-      name: 'Мой первый список',
-      createdAt: Date.now(),
-      tasks: [
-        { id: uid(), text: 'Попробовать инлайн-редактирование ✏️', completed: false, createdAt: Date.now() },
-        { id: uid(), text: 'Переключить тему 🌓', completed: false, createdAt: Date.now() },
-      ],
-    }],
-  };
-}
+  function seed() {
+    const id = uid();
+    return {
+      lists: [{
+        id,
+        name: 'My first list',
+        createdAt: Date.now(),
+        tasks: [
+          { id: uid(), text: 'Try inline editing ✏️', completed: false, createdAt: Date.now() },
+          { id: uid(), text: 'Switch theme 🌓', completed: false, createdAt: Date.now() },
+        ],
+      }],
+    };
+  }
 
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seed();
-    const parsed = JSON.parse(raw);
-
-    // проверка структуры
-    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.lists)) {
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return seed();
+      const parsed = JSON.parse(raw);
+      // Validate structure
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.lists)) {
+        return seed();
+      }
+      return parsed;
+    } catch {
       return seed();
     }
-    return parsed;
-  } catch {
-    return seed();
   }
-}
 
-let state = load();
+  let state = load();
 
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
 
   // ---------- Theme ----------
   const root = document.documentElement;
@@ -112,7 +111,7 @@ function save() {
         li.dataset.id = list.id;
         $('.list-name', li).textContent = list.name;
         const tasksCount = list.tasks.length;
-        $('.list-meta', li).textContent = `Создан: ${fmtDate(list.createdAt)} • Задач: ${tasksCount}`;
+        $('.list-meta', li).textContent = `Created: ${fmtDate(list.createdAt)} • Tasks: ${tasksCount}`;
         // open
         $('.list-open', li).addEventListener('click', () => showTasks(list.id));
         // rename
@@ -123,7 +122,7 @@ function save() {
         // delete
         $('.delete-list', li).addEventListener('click', (e) => {
           e.stopPropagation();
-          if (confirm(`Удалить список «${list.name}»?`)) {
+          if (confirm(`Delete list “${list.name}”?`)) {
             state.lists = state.lists.filter(l => l.id !== list.id);
             save();
             renderLists();
@@ -137,7 +136,7 @@ function save() {
       const empty = document.createElement('div');
       empty.className = 'card';
       empty.style.textAlign = 'center';
-      empty.textContent = 'Пока нет списков. Создайте первый!';
+      empty.textContent = 'No lists yet. Create your first one!';
       listsContainer.appendChild(empty);
     }
   }
@@ -206,11 +205,11 @@ function save() {
         });
 
         $('.delete-task', li).addEventListener('click', () => {
-          if (confirm('Удалить задачу?')) {
+          if (confirm('Delete this task?')) {
             list.tasks = list.tasks.filter(t => t.id !== task.id);
             save();
             renderTasks(listId);
-            renderLists(); // обновим счётчик задач на карточке списка
+            renderLists(); // update counter in lists view
           }
         });
 
@@ -250,7 +249,7 @@ function save() {
 
   // ---------- Handlers ----------
   addListBtn.addEventListener('click', () => {
-    const name = prompt('Название списка:', 'Новый список');
+    const name = prompt('List name:', 'New list');
     if (!name) return;
     const id = uid();
     state.lists.unshift({ id, name: name.trim(), createdAt: Date.now(), tasks: [] });
@@ -263,7 +262,7 @@ function save() {
   deleteListBtn.addEventListener('click', () => {
     const list = getList(currentListId);
     if (!list) return;
-    if (confirm(`Удалить список «${list.name}» со всеми задачами?`)) {
+    if (confirm(`Delete list “${list.name}” and all its tasks?`)) {
       state.lists = state.lists.filter(l => l.id !== currentListId);
       save();
       currentListId = null;
@@ -293,5 +292,10 @@ function save() {
   });
 
   // ---------- Init ----------
-  showLists();
+  try {
+    showLists();
+    console.log('[todo] app initialized');
+  } catch (e) {
+    console.error('[todo] init error:', e);
+  }
 })();
