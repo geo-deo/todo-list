@@ -7,17 +7,24 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
 
 
 ## ✨ Features
-- **Add / Remove tasks** with instant updates.
-- **Priority levels**: Low, Normal, High (with color badges).
-- **Dark & Light themes** — remembers your choice.
-- **Inline editing** — double-click tasks to rename.
-- **Filters**: All, Active, Completed.
-- **Persistent storage** — tasks stay after reload.
-- **Export / Import** tasks as JSON files.
+- **Create multiple lists**, each with its own tasks
+- **Inline rename** for lists and tasks (✏️)
+- **Checkbox completion** with visual state
+- **Keyboard-friendly inputs** (Enter to add)
+- **Persistent data via `localStorage`**
+- **English dates and labels**
 
 
 ## 🖼 Preview
-![To-Do List Screenshot](screenshot.png)
+
+#### Main screen (Light theme)
+![Main screen - light](screenshots/main-light.png)
+
+#### Tasks screen (Dark theme)
+![Tasks screen - dark](screenshots/tasks-dark.png)
+
+#### Inline editing
+![Inline editing](screenshots/inline-edit.png)
 
 
 ## 📦 Installation
