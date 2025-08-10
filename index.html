@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="ru" data-theme="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ToDo — Списки списков</title>
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css" />
-  <script defer src="./script.js?v=2"></script>
-</head>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ToDo — Списки списков</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="./script.js?v=3"></script>
+  </head>
   <body>
     <header class="app-header">
       <div class="brand">
@@ -29,7 +29,6 @@
             <button id="addListBtn" class="btn primary">＋ Новый список</button>
           </div>
         </div>
-
         <ul id="listsContainer" class="list-grid" aria-live="polite"></ul>
       </section>
 
@@ -46,4 +45,47 @@
           <div class="inline-actions">
             <button id="deleteListBtn" class="btn danger" title="Удалить список">🗑️ Удалить список</button>
           </div>
-        </d
+        </div>
+
+        <div class="task-input">
+          <input id="newTaskInput" type="text" placeholder="Новая задача…" />
+          <button id="addTaskBtn" class="btn primary">Добавить</button>
+        </div>
+
+        <ul id="tasksContainer" class="tasks" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Сделано с любовью и micro-animations ✨</span>
+    </footer>
+
+    <!-- Templates -->
+    <template id="listItemTpl">
+      <li class="list-card" data-id="">
+        <button class="list-open">
+          <div class="list-name"></div>
+          <div class="list-meta"></div>
+        </button>
+        <div class="list-card-actions">
+          <button class="icon-btn rename-list" title="Переименовать">✏️</button>
+          <button class="icon-btn delete-list" title="Удалить">🗑️</button>
+        </div>
+      </li>
+    </template>
+
+    <template id="taskItemTpl">
+      <li class="task" data-id="">
+        <label class="checkbox">
+          <input type="checkbox" class="toggle" />
+          <span class="checkmark" aria-hidden="true"></span>
+        </label>
+        <span class="task-text"></span>
+        <div class="task-actions">
+          <button class="icon-btn edit-task" title="Редактировать">✏️</button>
+          <button class="icon-btn delete-task" title="Удалить">🗑️</button>
+        </div>
+      </li>
+    </template>
+  </body>
+</html>
