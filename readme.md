@@ -1,7 +1,6 @@
 # To-Do List App
 
-A modern, browser-based To-Do list application built with **HTML**, **CSS**, and **JavaScript**.  
-Features inline editing, priority levels, dark theme, filters, and persistent storage via **localStorage**.
+ToDo — List of Lists is a fast, minimalistic, and responsive task manager built with pure **HTML**, **CSS**, and **JavaScript**. It supports creating multiple to-do lists, **inline editing for lists and tasks**, **light/dark themes** with auto and manual switching, **persistent data via localStorage**, and a clean UI enhanced with icons, **micro-animations**, and tooltips. Fully functional and deployed on GitHub Pages.
 
 🔗 **Live Demo:** [https://geo-deo.github.io/todo-list/](https://geo-deo.github.io/todo-list/)
 
