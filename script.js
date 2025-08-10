@@ -5,9 +5,18 @@
   const fmtDate = (ts) => {
     const d = new Date(ts);
     // Use browser locale automatically
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+
+  // Prevent accidental "Space" key triggering list open right after creating
+  let suppressSpaceUntil = 0;
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && Date.now() < suppressSpaceUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
 
   // ---------- State & Storage ----------
   const STORAGE_KEY = 'todo_lists_v2';
