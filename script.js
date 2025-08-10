@@ -86,7 +86,7 @@
   const addTaskBtn = $('#addTaskBtn');
   const backToLists = $('#backToLists');
   const deleteListBtn = $('#deleteListBtn');
-  const currentListNameSpan = $('#currentListName');
+  const getCurrentListNameEl = () => document.getElementById('currentListName');
   const editListNameBtn = $('#editListNameBtn');
 
   let currentListId = null;
@@ -101,7 +101,7 @@
     listsView.classList.remove('active');
     tasksView.classList.add('active');
     const list = getList(listId);
-    currentListNameSpan.textContent = list?.name ?? '';
+    getCurrentListNameEl().textContent = list?.name ?? '';
     renderTasks(listId);
   }
 
@@ -171,12 +171,13 @@
 
     // If in header (tasks view)
     if (currentListId === listId) {
-      makeInlineInput(currentListNameSpan, list.name, (val) => {
-        list.name = val.trim() || list.name;
-        save();
-        currentListNameSpan.textContent = list.name;
-        renderLists();
-      });
+        const nameEl = getCurrentListNameEl();
+        makeInlineInput(nameEl, list.name, (val) => {
+          list.name = (val || '').trim() || list.name;
+          save();
+          getCurrentListNameEl().textContent = list.name;
+          renderLists();
+        }, { selectAll: true });
     }
   }
 
