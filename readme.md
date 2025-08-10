@@ -5,7 +5,6 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
 
 🔗 **Live Demo:** [https://geo-deo.github.io/todo-list/](https://geo-deo.github.io/todo-list/)
 
----
 
 ## ✨ Features
 - **Add / Remove tasks** with instant updates.
@@ -16,12 +15,10 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
 - **Persistent storage** — tasks stay after reload.
 - **Export / Import** tasks as JSON files.
 
----
 
 ## 🖼 Preview
 ![To-Do List Screenshot](screenshot.png)
 
----
 
 ## 📦 Installation
 1. Clone the repository:
@@ -30,7 +27,6 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
    cd todo-list
 2. Open index.html in your browser — no build tools needed.
 
----
 
 ## 📂 Project Structure
 📦todo-list/
@@ -39,7 +35,6 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
 - script.js # App logic
 - README.md # Project description
 
----
 
 ## 🛠 Tech Stack
 - **HTML5**
