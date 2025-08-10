@@ -212,9 +212,17 @@ function setTheme(mode){
   if (btn) btn.textContent = document.documentElement.dataset.theme === "dark" ? "Light" : "Dark";
 }
 
-function formatDate(ts){
+function formatDate(ts) {
   const d = new Date(ts);
-  return d.toLocaleString("undefined", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+  const opts = { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" };
+
+  try {
+    // undefined = использовать язык браузера/системы
+    return d.toLocaleString(undefined, opts);
+  } catch {
+    // fallback на ISO-строку, если вдруг что-то пошло не так
+    return d.toISOString();
+  }
 }
 
 function priorityLabel(p){ return p === "high" ? "High" : p === "low" ? "Low" : "Normal"; }
