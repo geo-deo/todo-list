@@ -33,11 +33,11 @@ Features inline editing, priority levels, dark theme, filters, and persistent st
 ---
 
 ## 📂 Project Structure
-📦 todo-list
- ┣ 📜 index.html       # Main HTML page
- ┣ 📜 style.css        # Styles (light & dark themes)
- ┣ 📜 script.js        # App logic
- ┗ 📜 README.md        # Project description
+📦todo-list/
+├── index.html # Main HTML page
+├── style.css # Styles (light & dark themes)
+├── script.js # App logic
+└── README.md # Project description
 
 ---
 
