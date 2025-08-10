@@ -1,266 +1,287 @@
-/**
- * Task model:
- * { id, text, done, createdAt, priority: "low"|"normal"|"high" }
- */
-let tasks = [];
-
-const LS_KEY = "tasks_v2";
-const TITLE_KEY = "todo_title_v1";
-const THEME_KEY = "todo_theme_v1";
-const FILTER_KEY = "todo_filter_v1";
-
-let currentFilter = "all"; // all | active | completed
-
-document.addEventListener("DOMContentLoaded", () => {
-  /* ---- Тема ---- */
-  const savedTheme = localStorage.getItem(THEME_KEY) || "light";
-  setTheme(savedTheme);
-
-  /* ---- Заголовок ---- */
-  const $title = document.getElementById("appTitle");
-  $title.textContent = localStorage.getItem(TITLE_KEY) || "My To-Do List";
-  // сохраняем при Enter/blur
-  $title.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); $title.blur(); }
-  });
-  $title.addEventListener("blur", () => {
-    localStorage.setItem(TITLE_KEY, $title.textContent.trim() || "My To-Do List");
-  });
-
-  /* ---- Загрузка задач ---- */
-  loadTasks();
-
-  /* ---- Фильтр ---- */
-  currentFilter = localStorage.getItem(FILTER_KEY) || "all";
-  document.getElementById("filterSelect").value = currentFilter;
-  document.getElementById("filterSelect").addEventListener("change", (e) => {
-    currentFilter = e.target.value;
-    localStorage.setItem(FILTER_KEY, currentFilter);
-    renderTasks();
-  });
-
-  /* ---- Кнопки ---- */
-  document.getElementById("addBtn").addEventListener("click", addTask);
-  document.getElementById("taskInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") addTask();
-  });
-  document.getElementById("themeToggle").addEventListener("click", () => {
-    setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
-  });
-  document.getElementById("exportBtn").addEventListener("click", exportTasks);
-  document.getElementById("importInput").addEventListener("change", importTasksFromFile);
-
-  renderTasks();
-});
-
-/* ========= Core ========= */
-
-function addTask() {
-  const input = document.getElementById("taskInput");
-  const priority = document.getElementById("prioritySelect").value;
-  const text = input.value.trim();
-  if (!text) return;
-
-  tasks.push({
-    id: uid(),
-    text,
-    done: false,
-    createdAt: Date.now(),
-    priority
-  });
-  saveTasks();
-  input.value = "";
-  renderTasks();
-}
-
-function toggleDone(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  t.done = !t.done;
-  saveTasks();
-  renderTasks();
-}
-
-function deleteTask(id) {
-  const el = document.querySelector(`li.task[data-id="${id}"]`);
-  if (el) {
-    el.classList.add("fade-out");
-    setTimeout(() => {
-      tasks = tasks.filter(x => x.id !== id);
-      saveTasks();
-      renderTasks();
-    }, 200);
-  }
-}
-
-/* ========= Inline edit ========= */
-function startEditTitle(id) {
-  const li = document.querySelector(`li.task[data-id="${id}"]`);
-  if (!li) return;
-
-  const titleDiv = li.querySelector(".title");
-  const oldText = titleDiv.textContent;
-
-  // создаём input и подменяем title
-  const input = document.createElement("input");
-  input.className = "edit-input";
-  input.value = oldText;
-  titleDiv.replaceWith(input);
-  input.focus();
-  input.setSelectionRange(oldText.length, oldText.length);
-
-  const commit = () => {
-    const t = tasks.find(x => x.id === id);
-    if (t) {
-      t.text = input.value.trim() || t.text; // пустые не сохраняем
-      saveTasks();
-    }
-    renderTasks();
+(() => {
+  // ---------- Utilities ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const fmtDate = (ts) => {
+    const d = new Date(ts);
+    // Авто-локаль по браузеру
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   };
-  const cancel = () => { renderTasks(); };
+  const uid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") commit();
-    if (e.key === "Escape") cancel();
+  // ---------- State & Storage ----------
+  const STORAGE_KEY = 'todo_lists_v2';
+  /** @type {{lists: Array<{id:string,name:string,createdAt:number,tasks:Array<{id:string,text:string,completed:boolean,createdAt:number}>}>}} */
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    // seed примером
+    const exampleId = uid();
+    return {
+      lists: [
+        {
+          id: exampleId,
+          name: 'Мой первый список',
+          createdAt: Date.now(),
+          tasks: [
+            { id: uid(), text: 'Попробовать инлайн‑редактирование ✏️', completed: false, createdAt: Date.now() },
+            { id: uid(), text: 'Переключить тему 🌓', completed: false, createdAt: Date.now() }
+          ]
+        }
+      ]
+    };
+  }
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // ---------- Theme ----------
+  const root = document.documentElement;
+  const themeToggle = $('#themeToggle');
+  themeToggle.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : current === 'dark' ? '' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
   });
-  input.addEventListener("blur", commit);
-}
+  // restore theme
+  (function restoreTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved !== null) root.setAttribute('data-theme', saved);
+  })();
 
-/* ========= Render ========= */
-function renderTasks() {
-  const list = document.getElementById("taskList");
-  list.innerHTML = "";
+  // ---------- Views ----------
+  const listsView = $('#listsView');
+  const tasksView = $('#tasksView');
 
-  // фильтрация
-  let view = tasks;
-  if (currentFilter === "active") view = tasks.filter(t => !t.done);
-  if (currentFilter === "completed") view = tasks.filter(t => t.done);
+  const listsContainer = $('#listsContainer');
+  const listItemTpl = $('#listItemTpl');
+  const addListBtn = $('#addListBtn');
 
-  // новые задачи сверху
-  view = [...view].reverse();
+  const tasksContainer = $('#tasksContainer');
+  const taskItemTpl = $('#taskItemTpl');
+  const newTaskInput = $('#newTaskInput');
+  const addTaskBtn = $('#addTaskBtn');
+  const backToLists = $('#backToLists');
+  const deleteListBtn = $('#deleteListBtn');
+  const currentListNameSpan = $('#currentListName');
+  const editListNameBtn = $('#editListNameBtn');
 
-  view.forEach(t => {
-    /* li — контейнер */
-    const li = document.createElement("li");
-    li.className = "task" + (t.done ? " done" : "");
-    li.dataset.id = t.id;
+  let currentListId = null;
 
-    /* чекбокс статуса */
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = t.done;
-    checkbox.addEventListener("change", () => toggleDone(t.id));
+  function showLists() {
+    listsView.classList.add('active');
+    tasksView.classList.remove('active');
+    renderLists();
+  }
+  function showTasks(listId) {
+    currentListId = listId;
+    listsView.classList.remove('active');
+    tasksView.classList.add('active');
+    const list = getList(listId);
+    currentListNameSpan.textContent = list?.name ?? '';
+    renderTasks(listId);
+  }
 
-    /* заголовок (клик/даблклик — редактирование) */
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = t.text;
-    title.title = "Double‑click to edit";
-    title.addEventListener("dblclick", () => startEditTitle(t.id));
+  function getList(id) {
+    return state.lists.find(l => l.id === id);
+  }
 
-    /* бейдж приоритета */
-    const badge = document.createElement("span");
-    badge.className = "badge " + t.priority;
-    badge.textContent = priorityLabel(t.priority);
+  // ---------- Render Lists ----------
+  function renderLists() {
+    listsContainer.innerHTML = '';
+    state.lists
+      .slice()
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .forEach(list => {
+        const li = listItemTpl.content.firstElementChild.cloneNode(true);
+        li.dataset.id = list.id;
+        $('.list-name', li).textContent = list.name;
+        const tasksCount = list.tasks.length;
+        $('.list-meta', li).textContent = `Создан: ${fmtDate(list.createdAt)} • Задач: ${tasksCount}`;
+        // open
+        $('.list-open', li).addEventListener('click', () => showTasks(list.id));
+        // rename
+        $('.rename-list', li).addEventListener('click', (e) => {
+          e.stopPropagation();
+          inlineRename(list.id);
+        });
+        // delete
+        $('.delete-list', li).addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Удалить список «${list.name}»?`)) {
+            state.lists = state.lists.filter(l => l.id !== list.id);
+            save();
+            renderLists();
+          }
+        });
 
-    /* мета: дата + статус */
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = `${formatDate(t.createdAt)} — ${t.done ? "✅ Done" : "🕓 In Progress"}`;
+        listsContainer.appendChild(li);
+      });
 
-    /* удалить */
-    const del = document.createElement("button");
-    del.className = "delete-btn";
-    del.textContent = "Delete";
-    del.addEventListener("click", () => deleteTask(t.id));
-
-    // порядок элементов
-    li.appendChild(checkbox);
-    li.appendChild(title);
-    li.appendChild(badge);
-    li.appendChild(meta);
-    li.appendChild(del);
-
-    list.appendChild(li);
-  });
-}
-
-/* ========= Persistence & utils ========= */
-function saveTasks(){ localStorage.setItem(LS_KEY, JSON.stringify(tasks)); }
-
-function loadTasks(){
-  const raw = localStorage.getItem(LS_KEY);
-  if (!raw) return;
-  try{
-    const arr = JSON.parse(raw);
-    if (Array.isArray(arr)) {
-      tasks = arr.map(t => ({
-        id: t.id || uid(),
-        text: String(t.text ?? ""),
-        done: !!t.done,
-        createdAt: typeof t.createdAt === "number" ? t.createdAt : Date.now(),
-        priority: (t.priority === "low" || t.priority === "high" || t.priority === "normal") ? t.priority : "normal",
-      }));
+    if (state.lists.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'card';
+      empty.style.textAlign = 'center';
+      empty.textContent = 'Пока нет списков. Создайте первый!';
+      listsContainer.appendChild(empty);
     }
-  }catch{ tasks = []; }
-}
-
-function setTheme(mode){
-  document.documentElement.dataset.theme = (mode === "dark" ? "dark" : "light");
-  localStorage.setItem(THEME_KEY, document.documentElement.dataset.theme);
-  const btn = document.getElementById("themeToggle");
-  if (btn) btn.textContent = document.documentElement.dataset.theme === "dark" ? "Light" : "Dark";
-}
-
-function formatDate(ts) {
-  const d = new Date(ts);
-  const opts = { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" };
-
-  try {
-    // undefined = использовать язык браузера/системы
-    return d.toLocaleString(undefined, opts);
-  } catch {
-    // fallback на ISO-строку, если вдруг что-то пошло не так
-    return d.toISOString();
   }
-}
 
-function priorityLabel(p){ return p === "high" ? "High" : p === "low" ? "Low" : "Normal"; }
+  // Inline rename list from lists grid or header
+  function inlineRename(listId) {
+    const list = getList(listId);
+    if (!list) return;
 
-function uid(){
-  if (crypto?.getRandomValues){
-    const a = new Uint32Array(3); crypto.getRandomValues(a);
-    return Array.from(a, n=>n.toString(16)).join("");
+    // If in lists grid
+    const card = $(`.list-card[data-id="${listId}"]`);
+    if (card) {
+      const nameEl = $('.list-name', card);
+      makeInlineInput(nameEl, list.name, (val) => {
+        list.name = val.trim() || list.name;
+        save();
+        renderLists();
+        // sync header if open
+        if (currentListId === listId) currentListNameSpan.textContent = list.name;
+      });
+      return;
+    }
+
+    // If in header (tasks view)
+    if (currentListId === listId) {
+      makeInlineInput(currentListNameSpan, list.name, (val) => {
+        list.name = val.trim() || list.name;
+        save();
+        currentListNameSpan.textContent = list.name;
+        renderLists();
+      });
+    }
   }
-  return Math.random().toString(16).slice(2) + Date.now().toString(16);
-}
 
-/* ===== Export/Import (как в предыдущей версии) ===== */
-function exportTasks(){
-  const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "tasks_backup.json"; a.click();
-  URL.revokeObjectURL(url);
-}
-function importTasksFromFile(e){
-  const file = e.target.files?.[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const data = JSON.parse(reader.result);
-      if (Array.isArray(data)){
-        tasks = data.map(t => ({
-          id: t.id || uid(),
-          text: String(t.text ?? ""),
-          done: !!t.done,
-          createdAt: typeof t.createdAt === "number" ? t.createdAt : Date.now(),
-          priority: (t.priority === "low" || t.priority === "high" || t.priority === "normal") ? t.priority : "normal",
-        }));
-        saveTasks(); renderTasks();
-      } else { alert("Invalid file format"); }
-    }catch{ alert("Failed to parse JSON"); }
-    e.target.value = "";
-  };
-  reader.readAsText(file);
-}
+  // ---------- Render Tasks ----------
+  function renderTasks(listId) {
+    tasksContainer.innerHTML = '';
+    const list = getList(listId);
+    if (!list) return;
+
+    list.tasks
+      .slice()
+      .sort((a, b) => Number(a.completed) - Number(b.completed) || b.createdAt - a.createdAt)
+      .forEach(task => {
+        const li = taskItemTpl.content.firstElementChild.cloneNode(true);
+        li.dataset.id = task.id;
+        const checkbox = $('.toggle', li);
+        const textEl = $('.task-text', li);
+
+        checkbox.checked = task.completed;
+        textEl.textContent = task.text;
+        li.classList.toggle('completed', task.completed);
+
+        checkbox.addEventListener('change', () => {
+          task.completed = checkbox.checked;
+          save();
+          li.classList.toggle('completed', task.completed);
+        });
+
+        $('.edit-task', li).addEventListener('click', () => {
+          makeInlineInput(textEl, task.text, (val) => {
+            task.text = val.trim() || task.text;
+            save();
+            renderTasks(listId);
+          }, { selectAll: true });
+        });
+
+        $('.delete-task', li).addEventListener('click', () => {
+          if (confirm('Удалить задачу?')) {
+            list.tasks = list.tasks.filter(t => t.id !== task.id);
+            save();
+            renderTasks(listId);
+            renderLists(); // обновим счётчик задач на карточке списка
+          }
+        });
+
+        tasksContainer.appendChild(li);
+      });
+  }
+
+  function makeInlineInput(targetEl, initialValue, onCommit, opts = {}) {
+    const { selectAll = false } = opts;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'inline-edit';
+    input.value = initialValue;
+    targetEl.replaceWith(input);
+    input.focus();
+    if (selectAll) input.select(); else input.setSelectionRange(input.value.length, input.value.length);
+
+    const commit = () => {
+      const span = document.createElement('span');
+      span.className = targetEl.className;
+      span.textContent = input.value.trim() || initialValue;
+      input.replaceWith(span);
+      onCommit(span.textContent);
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') commit();
+      if (e.key === 'Escape') {
+        const span = document.createElement('span');
+        span.className = targetEl.className;
+        span.textContent = initialValue;
+        input.replaceWith(span);
+      }
+    });
+    input.addEventListener('blur', commit);
+  }
+
+  // ---------- Handlers ----------
+  addListBtn.addEventListener('click', () => {
+    const name = prompt('Название списка:', 'Новый список');
+    if (!name) return;
+    const id = uid();
+    state.lists.unshift({ id, name: name.trim(), createdAt: Date.now(), tasks: [] });
+    save();
+    renderLists();
+  });
+
+  backToLists.addEventListener('click', showLists);
+
+  deleteListBtn.addEventListener('click', () => {
+    const list = getList(currentListId);
+    if (!list) return;
+    if (confirm(`Удалить список «${list.name}» со всеми задачами?`)) {
+      state.lists = state.lists.filter(l => l.id !== currentListId);
+      save();
+      currentListId = null;
+      showLists();
+    }
+  });
+
+  addTaskBtn.addEventListener('click', addTask);
+  newTaskInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addTask();
+  });
+  function addTask() {
+    const list = getList(currentListId);
+    if (!list) return;
+    const txt = newTaskInput.value.trim();
+    if (!txt) return;
+    list.tasks.unshift({ id: uid(), text: txt, completed: false, createdAt: Date.now() });
+    newTaskInput.value = '';
+    save();
+    renderTasks(list.id);
+    renderLists();
+  }
+
+  editListNameBtn.addEventListener('click', () => {
+    if (!currentListId) return;
+    inlineRename(currentListId);
+  });
+
+  // ---------- Init ----------
+  showLists();
+})();

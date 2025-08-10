@@ -1,48 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>To-Do</title>
-  <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-  <!-- Заголовок приложения — редактируемый, сохраняется в localStorage -->
-  <h1 id="appTitle" contenteditable="true" spellcheck="false" title="Click to rename">
-    My To-Do List
-  </h1>
+<!doctype html>
+<html lang="ru" data-theme="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ToDo — Списки списков</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo">✅</span>
+        <span class="title">ToDo</span>
+      </div>
 
-  <div class="toolbar">
-    <input type="text" id="taskInput" placeholder="Enter a task"/>
-    <select id="prioritySelect" title="Priority">
-      <option value="low">Low</option>
-      <option value="normal" selected>Normal</option>
-      <option value="high">High</option>
-    </select>
-    <button id="addBtn">Add</button>
+      <div class="actions">
+        <button id="themeToggle" class="btn ghost" title="Сменить тему" aria-label="Сменить тему">🌓</button>
+      </div>
+    </header>
 
-    <div class="spacer"></div>
+    <main class="container">
+      <!-- View: Lists Overview -->
+      <section id="listsView" class="card view active" aria-labelledby="listsTitle">
+        <div class="view-header">
+          <h2 id="listsTitle">Мои списки</h2>
+          <div class="inline-actions">
+            <button id="addListBtn" class="btn primary">＋ Новый список</button>
+          </div>
+        </div>
 
-    <!-- Фильтр -->
-    <select id="filterSelect" title="Filter">
-      <option value="all" selected>All</option>
-      <option value="active">Active</option>
-      <option value="completed">Completed</option>
-    </select>
+        <ul id="listsContainer" class="list-grid" aria-live="polite"></ul>
+      </section>
 
-    <!-- Тёмная тема -->
-    <button id="themeToggle" title="Toggle theme">Dark</button>
-
-    <!-- Экспорт/Импорт (остались как были) -->
-    <button id="exportBtn" title="Download tasks as JSON">Export</button>
-    <label class="import-label" title="Import tasks from JSON">
-      Import
-      <input type="file" id="importInput" accept="application/json" hidden/>
-    </label>
-  </div>
-
-  <ul id="taskList"></ul>
-
-  <script src="script.js"></script>
-</body>
-</html>
+      <!-- View: Tasks of selected list -->
+      <section id="tasksView" class="card view" aria-labelledby="tasksTitle">
+        <div class="view-header">
+          <div class="left">
+            <button id="backToLists" class="btn ghost" title="К спискам">⬅️</button>
+            <h2 id="tasksTitle">
+              <span id="currentListName"></span>
+              <button id="editListNameBtn" class="icon-btn" title="Переименовать список" aria-label="Переименовать список">✏️</button>
+            </h2>
+          </div>
+          <div class="inline-actions">
+            <button id="deleteListBtn" class="btn danger" title="Удалить список">🗑️ Удалить список</button>
+          </div>
+        </d
