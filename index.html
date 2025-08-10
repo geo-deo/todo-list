@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ru" data-theme="">
+<html lang="en" data-theme="">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ToDo — Списки списков</title>
+    <title>ToDo — List of Lists</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css" />
-    <script defer src="./script.js?v=3"></script>
+    <script defer src="./script.js?v=4"></script>
   </head>
   <body>
     <header class="app-header">
@@ -16,7 +16,7 @@
       </div>
 
       <div class="actions">
-        <button id="themeToggle" class="btn ghost" title="Сменить тему" aria-label="Сменить тему">🌓</button>
+        <button id="themeToggle" class="btn ghost" title="Switch theme" aria-label="Switch theme">🌓</button>
       </div>
     </header>
 
@@ -24,9 +24,9 @@
       <!-- View: Lists Overview -->
       <section id="listsView" class="card view active" aria-labelledby="listsTitle">
         <div class="view-header">
-          <h2 id="listsTitle">Мои списки</h2>
+          <h2 id="listsTitle">My Lists</h2>
           <div class="inline-actions">
-            <button id="addListBtn" class="btn primary">＋ Новый список</button>
+            <button id="addListBtn" class="btn primary">＋ New List</button>
           </div>
         </div>
         <ul id="listsContainer" class="list-grid" aria-live="polite"></ul>
@@ -36,20 +36,20 @@
       <section id="tasksView" class="card view" aria-labelledby="tasksTitle">
         <div class="view-header">
           <div class="left">
-            <button id="backToLists" class="btn ghost" title="К спискам">⬅️</button>
+            <button id="backToLists" class="btn ghost" title="Back to lists">⬅️</button>
             <h2 id="tasksTitle">
               <span id="currentListName"></span>
-              <button id="editListNameBtn" class="icon-btn" title="Переименовать список" aria-label="Переименовать список">✏️</button>
+              <button id="editListNameBtn" class="icon-btn" title="Rename list" aria-label="Rename list">✏️</button>
             </h2>
           </div>
           <div class="inline-actions">
-            <button id="deleteListBtn" class="btn danger" title="Удалить список">🗑️ Удалить список</button>
+            <button id="deleteListBtn" class="btn danger" title="Delete list">🗑️ Delete list</button>
           </div>
         </div>
 
         <div class="task-input">
-          <input id="newTaskInput" type="text" placeholder="Новая задача…" />
-          <button id="addTaskBtn" class="btn primary">Добавить</button>
+          <input id="newTaskInput" type="text" placeholder="New task…" />
+          <button id="addTaskBtn" class="btn primary">Add</button>
         </div>
 
         <ul id="tasksContainer" class="tasks" aria-live="polite"></ul>
@@ -57,7 +57,7 @@
     </main>
 
     <footer class="app-footer">
-      <span>Сделано с любовью и micro-animations ✨</span>
+      <span>Created by AI for humans 🤖</span>
     </footer>
 
     <!-- Templates -->
@@ -68,8 +68,8 @@
           <div class="list-meta"></div>
         </button>
         <div class="list-card-actions">
-          <button class="icon-btn rename-list" title="Переименовать">✏️</button>
-          <button class="icon-btn delete-list" title="Удалить">🗑️</button>
+          <button class="icon-btn rename-list" title="Rename">✏️</button>
+          <button class="icon-btn delete-list" title="Delete">🗑️</button>
         </div>
       </li>
     </template>
@@ -82,8 +82,8 @@
         </label>
         <span class="task-text"></span>
         <div class="task-actions">
-          <button class="icon-btn edit-task" title="Редактировать">✏️</button>
-          <button class="icon-btn delete-task" title="Удалить">🗑️</button>
+          <button class="icon-btn edit-task" title="Edit">✏️</button>
+          <button class="icon-btn delete-task" title="Delete">🗑️</button>
         </div>
       </li>
     </template>
